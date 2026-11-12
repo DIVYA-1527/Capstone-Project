@@ -391,17 +391,76 @@ classDiagram
     DashboardService ..> ChartBuilder : initializes and uses
 ```
 
-## Run it (Windows PowerShell)
+## Run it 
+
+## How to run
+
+### Option A: Docker 
+
+**Requirements:** Docker Desktop (running) and Git. Internet is needed on the first start, because the classifier model is downloaded.
+
+```powershell
+git clone https://github.com/DIVYA-1527/Capstone-Project.git
+cd Capstone-Project
+docker compose up --build
+```
+
+Open **http://localhost:5000**. The first start takes a few minutes.
+
+Docker starts two containers: a MySQL 8 database (`db`) and the Flask app (`web`). The app waits until the database is ready, and the tables are created automatically on start. No `.env` file and no manual database setup are needed.
+
+To stop: press `Ctrl+C`, then run `docker compose down`. To also delete the database data, run `docker compose down -v`.
+
+**AI coach with KI:connect (optional).** Without a key, the coach automatically uses the offline tips. To use KI:connect:
+
+```powershell
+copy .env.example .env
+```
+
+Enter your key in `.env` (`KICONNECT_API_KEY=...`) and run `docker compose up --build` again.
+
+The database credentials in `docker-compose.yaml` are demo values for the local Docker setup only.
+
+### Tests
+
+Run the tests in a temporary container (the app doesn't need to be running):
+
+```powershell
+docker compose run --rm web python -m pytest -v
+```
+
+If the app is already running in the background (`docker compose up -d`), you can also use:
+
+```powershell
+docker compose exec web python -m pytest -v
+```
+
+Tests by category and with coverage:
+
+```powershell
+docker compose run --rm web python -m pytest -m unit -v
+docker compose run --rm web python -m pytest -m integration -v
+docker compose run --rm web python -m pytest -m functional -v
+docker compose run --rm web python -m pytest -m regression -v
+docker compose run --rm web python -m pytest --cov=app --cov-report=term-missing
+```
+
+### Without Docker
+
+Use the commands below from the project folder, with the virtual environment active.
+
+### Option B: Run locally without Docker (Windows PowerShell)
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
- # then edit DATABASE_URL and KICONNECT_API_KEY in .env
+copy .env.example .env
+# then edit DATABASE_URL and KICONNECT_API_KEY in .env
 python run.py               # http://127.0.0.1:5000
 ```
 
-**MySQL:** `CREATE DATABASE waste_sorting CHARACTER SET utf8mb4;` and create a user, then set `DATABASE_URL=mysql+pymysql://user:password@localhost:3306/waste_sorting`. Tables are created on start.
+**MySQL:** run `CREATE DATABASE waste_sorting CHARACTER SET utf8mb4;`, create a user, and set `DATABASE_URL=mysql+pymysql://user:password@localhost:3306/waste_sorting`. Tables are created on start. For a quick test without MySQL you can use SQLite: `DATABASE_URL=sqlite:///waste_sorting.db`.
 
 Without `KICONNECT_API_KEY` the coach automatically uses the offline tips. Backends: `clip` (default), `huggingface`, `siglip2` (set `CLASSIFIER_BACKEND`). The tests use stubs, so they need no model download and no network.
 
