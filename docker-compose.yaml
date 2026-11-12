@@ -19,7 +19,9 @@ services:
     build: .
     ports:
       - "5000:5000"
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
             DATABASE_URL: mysql+pymysql://waste:waste_pw@db:3306/sorting_desk
     volumes:
